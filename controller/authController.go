@@ -3,10 +3,10 @@ package controller
 import (
 	"onestep/database"
 	"onestep/models"
+	"onestep/utils"
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -64,12 +64,8 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(user.ID)),
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-	})
+	token, err := utils.GenerateJWT(strconv.Itoa(int(user.ID)))
 
-	token, err := claims.SignedString([]byte("secret"))
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "something went wrong",
@@ -91,27 +87,13 @@ func Login(c *fiber.Ctx) error {
 
 }
 
-type Claims struct {
-	jwt.StandardClaims
-}
-
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
-	token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
-	})
-
-	if err != nil || !token.Valid {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "unauthorized",
-		})
-	}
-
-	claims := token.Claims.(*Claims)
+	id, _ := utils.ParseJWT(cookie)
 
 	var user models.User
 
-	database.DB.First(&user, claims.Issuer)
+	database.DB.First(&user, id)
 
 	return c.Status(fiber.StatusOK).JSON(user)
 }
