@@ -6,4 +6,6 @@ type User struct {
 	Lastname  string `json:"lastname"`
 	Email     string `json:"email" gorm:"unique"`
 	Password  []byte `json:"-"`
+	RoleID    uint   `json:"roleID"`
+	Role      Role   `json:"role" gorm:"foreignKey:RoleID"`
 }
