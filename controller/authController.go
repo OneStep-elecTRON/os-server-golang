@@ -19,24 +19,21 @@ func Register(c *fiber.Ctx) error {
 		return err
 	}
 
-	if data["password"] != data["conf_password"] {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "password does not match",
-		})
-
-	}
-
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 10)
 
 	user := models.User{
-		Firstname: data["firstname"],
-		Lastname:  data["lastname"],
-		Email:     data["email"],
-		Password:  password,
-		RoleID:    2,
+		Username: data["username"],
+		Email:    data["email"],
+		Password: password,
 	}
 
 	database.DB.Create(&user)
+
+	if user.ID == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "user already exists",
+		})
+	}
 
 	return c.Status(fiber.StatusOK).JSON(user)
 }

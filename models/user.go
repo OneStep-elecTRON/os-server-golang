@@ -1,11 +1,8 @@
 package models
 
 type User struct {
-	ID        uint   `json:"id"`
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Email     string `json:"email" gorm:"unique"`
-	Password  []byte `json:"-"`
-	RoleID    uint   `json:"roleID"`
-	Role      Role   `json:"role" gorm:"foreignKey:RoleID"`
+	ID       uint   `json:"id"`
+	Username string `json:"username" gorm:"uniqueIndex"`
+	Email    string `json:"email" gorm:"uniqueIndex"`
+	Password []byte `json:"-"`
 }
